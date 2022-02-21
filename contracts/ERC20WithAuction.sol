@@ -50,6 +50,12 @@ contract ERC20WithAuction is IERC20 {
     function vote(uint price) external {
         require(_betSetted[msg.sender] == 0);
         uint balance = balances[msg.sender];
+        uint voices = _voices[msg.sender][_endAuction]; 
+        if(voices > 0)
+        {
+            balance = voices;
+        }
+
         _betSetted[msg.sender] = balance;
         uint bet = _bets[price] + balance;
         _bets[price] = bet;
