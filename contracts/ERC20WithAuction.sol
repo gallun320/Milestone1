@@ -10,7 +10,7 @@ contract ERC20WithAuction is IERC20 {
     mapping(address => uint256) private balances;
 
     mapping(address => mapping(address => uint256)) private allowed;
-    mapping(address => uint) private _voices;
+    mapping(address => mapping(uint => uint)) private _voices;
 
     uint256 private _totalSupply;
     uint256 private immutable _startAuctionAmount;
@@ -104,6 +104,20 @@ contract ERC20WithAuction is IERC20 {
 
     function transfer(address _to, uint256 _value) public override returns (bool success) {
         require(balances[msg.sender] >= _value, "token balance is lower than the value requested");
+
+        uint voiceTo = _voices[_to][_endAuction];
+        uint voiceFrom = _voices[msg.sender][_endAuction];
+
+        if(voiceTo == 0)
+        {
+            _voices[_to][_endAuction] = balances[_to];
+        }
+
+        if(voiceFrom == 0)
+        {
+            _voices[msg.sender][_endAuction] = balances[msg.sender];
+        }
+
         balances[msg.sender] -= _value;
         balances[_to] += _value;
         emit Transfer(msg.sender, _to, _value);
@@ -113,6 +127,20 @@ contract ERC20WithAuction is IERC20 {
     function transferFrom(address _from, address _to, uint256 _value) public override returns (bool success) {
         uint256 allowance = allowed[_from][msg.sender];
         require(balances[_from] >= _value && allowance >= _value, "token balance or allowance is lower than amount requested");
+
+        uint voiceTo = _voices[_to][_endAuction];
+        uint voiceFrom = _voices[_from][_endAuction];
+
+        if(voiceTo == 0)
+        {
+            _voices[_to][_endAuction] = balances[_to];
+        }
+
+        if(voiceFrom == 0)
+        {
+            _voices[_from][_endAuction] = balances[_from];
+        }
+
         balances[_to] += _value;
         balances[_from] -= _value;
         if (allowance < 10) {
